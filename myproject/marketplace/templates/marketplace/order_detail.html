@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Order #{{ order.id }} - Local Marketplace{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Order Details -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h4 class="mb-0">Order #{{ order.id }}</h4>
+                        <span class="badge bg-{{ order.status|lower }}">
+                            {{ order.get_status_display }}
+                        </span>
+                    </div>
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h6 class="mb-3">Order Information</h6>
+                            <p class="mb-1"><strong>Date:</strong> {{ order.created_at|date:"F j, Y" }}</p>
+                            <p class="mb-1"><strong>Payment Method:</strong> {{ order.get_payment_method_display }}</p>
+                            <p class="mb-0"><strong>Total Amount:</strong> ₱{{ order.total_price }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="mb-3">Shipping Information</h6>
+                            <p class="mb-1"><strong>Name:</strong> {{ order.full_name }}</p>
+                            <p class="mb-1"><strong>Phone:</strong> {{ order.phone }}</p>
+                            <p class="mb-0"><strong>Address:</strong> {{ order.address }}</p>
+                        </div>
+                    </div>
+                    
+                    <h6 class="mb-3">Order Items</h6>
+                    {% for item in order.items.all %}
+                    <div class="row mb-3">
+                        <div class="col-md-2">
+                            {% if item.product.get_primary_image %}
+                                <img src="{{ item.product.get_primary_image.url }}" alt="{{ item.product.name }}" class="img-fluid rounded">
+                            {% else %}
+                                <img src="{% static 'images/no-image.png' %}" alt="No image available" class="img-fluid rounded">
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="mb-1">{{ item.product.name }}</h6>
+                            <p class="text-muted mb-0">{{ item.product.category.name }}</p>
+                        </div>
+                        <div class="col-md-2 text-center">
+                            <p class="mb-0">Qty: {{ item.quantity }}</p>
+                        </div>
+                        <div class="col-md-2 text-end">
+                            <p class="mb-0">₱{{ item.price }}</p>
+                        </div>
+                    </div>
+                    {% if not forloop.last %}<hr>{% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <!-- Order Summary -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title mb-4">Order Summary</h5>
+                    
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Subtotal</span>
+                        <span>₱{{ order.total_price }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Shipping</span>
+                        <span>Free</span>
+                    </div>
+                    <hr>
+                    <div class="d-flex justify-content-between mb-4">
+                        <strong>Total</strong>
+                        <strong>₱{{ order.total_price }}</strong>
+                    </div>
+                    
+                    <a href="{% url 'marketplace:orders' %}" class="btn btn-outline-primary w-100">
+                        Back to Orders
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Need Help? -->
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title mb-3">Need Help?</h5>
+                    <p class="text-muted mb-3">If you have any questions about your order, please contact our support team.</p>
+                    <a href="{% url 'marketplace:contact' %}" class="btn btn-primary w-100">
+                        Contact Support
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 
