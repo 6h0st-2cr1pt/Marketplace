@@ -1,7 +1,11 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-from .models import Product, Review
+from .models import Product, Review, ProductImage
+import requests
+from django.core.files.base import ContentFile
+from urllib.parse import urlparse
+import os
 
 class UserRegistrationForm(UserCreationForm):
     email = forms.EmailField(required=True)
@@ -172,3 +176,26 @@ class ReviewForm(forms.ModelForm):
         if not rating:
             raise forms.ValidationError('Please select a rating.')
         return rating 
+
+class ProductImageAdminForm(forms.ModelForm):
+    class Meta:
+        model = ProductImage
+        fields = '__all__'
+
+    def clean(self):
+        cleaned_data = super().clean()
+        image_url = cleaned_data.get('image_url')
+        image = cleaned_data.get('image')
+        if not image and not image_url:
+            raise forms.ValidationError('You must provide either an image file or an image URL.')
+        if image_url:
+            try:
+                response = requests.get(image_url)
+                response.raise_for_status()
+                file_name = os.path.basename(urlparse(image_url).path)
+                if not file_name:
+                    file_name = 'downloaded_image.jpg'
+                cleaned_data['image'] = ContentFile(response.content, name=file_name)
+            except Exception as e:
+                raise forms.ValidationError(f'Failed to download image from URL: {e}')
+        return cleaned_data 

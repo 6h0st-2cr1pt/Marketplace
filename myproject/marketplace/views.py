@@ -841,3 +841,12 @@ Local Marketplace Team
         'product': product,
     }
     return render(request, 'marketplace/contact_seller.html', context)
+
+@login_required
+def confirm_receipt(request, order_id):
+    order = get_object_or_404(Order, id=order_id, user=request.user)
+    if order.status == 'shipped':
+        order.status = 'delivered'
+        order.save()
+        messages.success(request, 'Thank you for confirming receipt! You can now rate your product(s).')
+    return redirect('marketplace:order_detail', order_id=order.id)

@@ -176,6 +176,7 @@ class ProductImage(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='images')
     image = models.ImageField(upload_to='product_images/')
     is_primary = models.BooleanField(default=False)
+    image_url = models.URLField(blank=True, null=True, help_text="Paste an image URL to fetch from the web.")
     created_at = models.DateTimeField(auto_now_add=True)
 
     def save(self, *args, **kwargs):
@@ -261,6 +262,13 @@ class Order(models.Model):
 
     def __str__(self):
         return f"Order {self.id} by {self.user.username}"
+
+    def save(self, *args, **kwargs):
+        if not self.first_name and self.user:
+            self.first_name = self.user.first_name
+        if not self.last_name and self.user:
+            self.last_name = self.user.last_name
+        super().save(*args, **kwargs)
 
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')
