@@ -1,16 +1,21 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.http import JsonResponse
-from django.db.models import Q
+from django.db.models import Q, Count, Sum
 from django.contrib import messages
 from django.contrib.auth import login, authenticate, logout
-from .models import Product, Category, Cart, CartItem, Wishlist, Order, OrderItem, Region, City, Review
+from .models import Product, Category, Cart, CartItem, Wishlist, Order, OrderItem, Region, City, Review, User
 from .forms import UserRegistrationForm, AddToCartForm, ContactSellerForm, ReviewForm
 from django.core.paginator import Paginator
 from django.views.decorators.http import require_POST
 from django.core.mail import send_mail
 from django.conf import settings
+from django.db.models.functions import TruncMonth, TruncDate
+from django.utils import timezone
+from datetime import timedelta
 import json
+import calendar
+import logging
 
 def home(request):
     featured_products = Product.objects.filter(is_featured=True, is_active=True)[:8]
@@ -850,3 +855,218 @@ def confirm_receipt(request, order_id):
         order.save()
         messages.success(request, 'Thank you for confirming receipt! You can now rate your product(s).')
     return redirect('marketplace:order_detail', order_id=order.id)
+
+def is_admin(user):
+    return user.is_superuser
+
+@user_passes_test(is_admin)
+def admin_home(request):
+    """Admin dashboard home view"""
+    return render(request, 'admin/home.html')
+
+@user_passes_test(is_admin)
+def admin_analytics_data(request):
+    logger = logging.getLogger(__name__)
+
+    # Get filter parameters
+    selected_date = request.GET.get('date', timezone.now().date().isoformat())
+    selected_seller = request.GET.get('seller')
+    
+    try:
+        selected_date = timezone.datetime.strptime(selected_date, '%Y-%m-%d').date()
+    except (ValueError, TypeError):
+        selected_date = timezone.now().date()
+    
+    # Only count delivered orders
+    orders = Order.objects.filter(status='delivered')
+    logger.info(f"Analytics: Counting only delivered orders. Total delivered orders: {orders.count()}")
+    logger.info(f"Order IDs: {[o.id for o in orders]}")
+    
+    # Apply filters
+    if selected_seller:
+        orders = orders.filter(orderitem__product__seller_id=selected_seller)
+    
+    # Time range for trends (last 30 days)
+    end_date = timezone.now()
+    start_date = end_date - timedelta(days=30)
+    
+    # Daily sales and orders trends
+    daily_data = orders.filter(
+        created_at__gte=start_date,
+        created_at__lte=end_date
+    ).annotate(
+        date=TruncDate('created_at')
+    ).values('date').annotate(
+        revenue=Sum('total_price'),
+        order_count=Count('id'),
+        avg_order_value=Sum('total_price') / Count('id'),
+        items_sold=Count('items')
+    ).order_by('date')
+
+    dates = []
+    revenue = []
+    orders_count = []
+    avg_order_values = []
+    items_sold = []
+    
+    for data in daily_data:
+        dates.append(data['date'].strftime('%Y-%m-%d'))
+        revenue.append(float(data['revenue'] or 0))
+        orders_count.append(data['order_count'])
+        avg_order_values.append(float(data['avg_order_value'] or 0))
+        items_sold.append(data['items_sold'])
+
+    # Today's data vs Yesterday's data
+    today = timezone.now().date()
+    yesterday = today - timedelta(days=1)
+
+    today_data = orders.filter(
+        created_at__date=today
+    ).aggregate(
+        total_sales=Sum('total_price'),
+        total_orders=Count('id'),
+        avg_order_value=Sum('total_price') / Count('id'),
+        items_sold=Count('items')
+    )
+
+    yesterday_data = orders.filter(
+        created_at__date=yesterday
+    ).aggregate(
+        total_sales=Sum('total_price'),
+        total_orders=Count('id')
+    )
+
+    # Calculate daily growth rates
+    sales_growth = (
+        ((today_data['total_sales'] or 0) - (yesterday_data['total_sales'] or 0)) /
+        (yesterday_data['total_sales'] or 1) * 100
+    )
+    
+    orders_growth = (
+        ((today_data['total_orders'] or 0) - (yesterday_data['total_orders'] or 0)) /
+        (yesterday_data['total_orders'] or 1) * 100
+    )
+
+    # Today's top products
+    product_data = OrderItem.objects.filter(
+        order__in=orders,
+        order__created_at__date=today
+    ).values(
+        'product__name',
+        'product__category__name'
+    ).annotate(
+        total_sales=Sum('price'),
+        units_sold=Sum('quantity'),
+        order_count=Count('order', distinct=True)
+    ).order_by('-total_sales')[:10]
+
+    # Today's top categories
+    category_data = OrderItem.objects.filter(
+        order__in=orders,
+        order__created_at__date=today
+    ).values(
+        'product__category__name'
+    ).annotate(
+        total_sales=Sum('price'),
+        order_count=Count('order', distinct=True),
+        units_sold=Sum('quantity')
+    ).order_by('-total_sales')
+
+    # Calculate category growth
+    yesterday_category = OrderItem.objects.filter(
+        order__in=orders,
+        order__created_at__date=yesterday
+    ).values(
+        'product__category__name'
+    ).annotate(
+        total_sales=Sum('price')
+    )
+
+    prev_category_dict = {
+        item['product__category__name']: item['total_sales']
+        for item in yesterday_category
+    }
+
+    category_data_formatted = {
+        'categories': [],
+        'sales': [],
+        'orders': [],
+        'units': [],
+        'growth': []
+    }
+
+    for item in category_data:
+        category_name = item['product__category__name']
+        current_sales = float(item['total_sales'] or 0)
+        previous_sales = float(prev_category_dict.get(category_name, 0))
+        growth = ((current_sales - previous_sales) / previous_sales * 100) if previous_sales else 0
+
+        category_data_formatted['categories'].append(category_name)
+        category_data_formatted['sales'].append(current_sales)
+        category_data_formatted['orders'].append(item['order_count'])
+        category_data_formatted['units'].append(item['units_sold'])
+        category_data_formatted['growth'].append(growth)
+
+    # Today's top sellers
+    seller_data = OrderItem.objects.filter(
+        order__in=orders,
+        order__created_at__date=today
+    ).values(
+        'product__seller__username',
+        'product__seller__id'
+    ).annotate(
+        total_sales=Sum('price'),
+        order_count=Count('order', distinct=True),
+        products_sold=Count('product', distinct=True),
+        avg_order_value=Sum('price') / Count('order', distinct=True),
+        total_units=Sum('quantity')
+    ).order_by('-total_sales')[:10]
+
+    # Today's top customers
+    customer_data = Order.objects.filter(
+        status='delivered',
+        created_at__date=today
+    ).values(
+        'user__username'
+    ).annotate(
+        total_spent=Sum('total_price'),
+        order_count=Count('id'),
+        avg_order_value=Sum('total_price') / Count('id')
+    ).order_by('-total_spent')[:10]
+
+    active_products = Product.objects.filter(is_active=True).count()
+    total_users = User.objects.count()
+    logger.info(f"Analytics: Total users in database: {total_users}")
+    
+    # Get all sellers for filter dropdown
+    all_sellers = User.objects.filter(
+        products__isnull=False
+    ).distinct().values('id', 'username')
+
+    return JsonResponse({
+        'dates': dates,
+        'revenue': revenue,
+        'orders': orders_count,
+        'avg_order_values': avg_order_values,
+        'items_sold': items_sold,
+        'category_data': category_data_formatted,
+        'seller_data': list(seller_data),
+        'product_data': list(product_data),
+        'customer_data': list(customer_data),
+        'summary': {
+            'total_sales': float(today_data['total_sales'] or 0),
+            'total_orders': today_data['total_orders'] or 0,
+            'avg_order_value': float(today_data['avg_order_value'] or 0),
+            'items_sold': today_data['items_sold'] or 0,
+            'active_products': active_products,
+            'total_users': total_users,
+            'sales_growth': sales_growth,
+            'orders_growth': orders_growth,
+            'yesterday_sales': float(yesterday_data['total_sales'] or 0),
+            'yesterday_orders': yesterday_data['total_orders'] or 0
+        },
+        'filters': {
+            'sellers': list(all_sellers),
+            'selected_date': selected_date.isoformat()
+        }
+    })

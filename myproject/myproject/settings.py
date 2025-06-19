@@ -154,3 +154,156 @@ EMAIL_HOST_USER = 'jonaldsabordo@gmail.com'  # <-- Replace with your Gmail addre
 EMAIL_HOST_PASSWORD = 'eeonixvlxxusszam'       # <-- Replace with your Gmail App Password
 DEFAULT_FROM_EMAIL = 'Local Marketplace <jonaldsabordo@gmail.com>'
 ADMIN_EMAIL = 'jonaldsabordo@gmail.com'      # <-- Replace with your Gmail address
+
+# SimpleUI Settings
+SIMPLEUI_HOME_PAGE = '/admin/home/'  # Updated with trailing slash
+SIMPLEUI_HOME_TITLE = 'Marketplace Analytics Dashboard'
+SIMPLEUI_HOME_ICON = 'fa fa-gauge'
+SIMPLEUI_ANALYSIS = True
+
+SIMPLEUI_CONFIG = {
+    'system_keep': True,
+    'menu_display': ['Marketplace', 'Authentication and Authorization'],
+    'dynamic': True,
+    'menus': [
+        {
+            'name': 'Marketplace',
+            'icon': 'fas fa-store',
+            'models': [
+                {
+                    'name': 'Products',
+                    'icon': 'fas fa-box',
+                    'url': 'marketplace/product/'
+                },
+                {
+                    'name': 'Orders',
+                    'icon': 'fas fa-shopping-cart',
+                    'url': 'marketplace/order/'
+                },
+                {
+                    'name': 'Categories',
+                    'icon': 'fas fa-tags',
+                    'url': 'marketplace/category/'
+                },
+            ]
+        },
+    ]
+}
+
+SIMPLEUI_HOME_INFO = [
+    {
+        'title': 'Marketplace Overview',
+        'icon': 'fas fa-chart-line',
+        'content': [
+            {
+                'type': 'row',
+                'gutter': 16,
+                'children': [
+                    {
+                        'type': 'card',
+                        'title': 'Total Sales',
+                        'icon': 'fas fa-money-bill',
+                        'content': '<h2 id="total-sales">₱0</h2><div>Revenue</div>',
+                        'span': 6,
+                        'chart': {
+                            'type': 'line',
+                            'data': []
+                        }
+                    },
+                    {
+                        'type': 'card',
+                        'title': 'Orders',
+                        'icon': 'fas fa-shopping-cart',
+                        'content': '<h2 id="orders-count">0</h2><div>Total Orders</div>',
+                        'span': 6,
+                        'chart': {
+                            'type': 'bar',
+                            'data': []
+                        }
+                    },
+                    {
+                        'type': 'card',
+                        'title': 'Products',
+                        'icon': 'fas fa-box',
+                        'content': '<h2 id="products-count">0</h2><div>Active Products</div>',
+                        'span': 6
+                    },
+                    {
+                        'type': 'card',
+                        'title': 'Users',
+                        'icon': 'fas fa-users',
+                        'content': '<h2 id="users-count">0</h2><div>Registered Users</div>',
+                        'span': 6
+                    }
+                ]
+            },
+            {
+                'type': 'chart',
+                'title': 'Sales Trends',
+                'span': 24,
+                'option': {
+                    'title': {'text': 'Monthly Sales'},
+                    'tooltip': {'trigger': 'axis'},
+                    'legend': {'data': ['Revenue', 'Orders']},
+                    'xAxis': {'type': 'category', 'data': []},
+                    'yAxis': [
+                        {'type': 'value', 'name': 'Revenue (₱)'},
+                        {'type': 'value', 'name': 'Orders'}
+                    ],
+                    'series': [
+                        {
+                            'name': 'Revenue',
+                            'type': 'line',
+                            'data': []
+                        },
+                        {
+                            'name': 'Orders',
+                            'type': 'bar',
+                            'data': []
+                        }
+                    ]
+                }
+            },
+            {
+                'type': 'chart',
+                'title': 'Regional Distribution',
+                'span': 12,
+                'option': {
+                    'title': {'text': 'Sales by Region'},
+                    'tooltip': {'trigger': 'item'},
+                    'legend': {'orient': 'vertical', 'left': 'left'},
+                    'series': [
+                        {
+                            'name': 'Sales Distribution',
+                            'type': 'pie',
+                            'radius': '50%',
+                            'data': []
+                        }
+                    ]
+                }
+            },
+            {
+                'type': 'chart',
+                'title': 'Top Categories',
+                'span': 12,
+                'option': {
+                    'title': {'text': 'Sales by Category'},
+                    'tooltip': {'trigger': 'axis'},
+                    'xAxis': {'type': 'category', 'data': []},
+                    'yAxis': {'type': 'value'},
+                    'series': [
+                        {
+                            'name': 'Sales',
+                            'type': 'bar',
+                            'data': []
+                        }
+                    ]
+                }
+            }
+        ]
+    }
+]
+
+# SimpleUI Settings
+SIMPLEUI_STATIC_OFFLINE = True  # Use local static files
+SIMPLEUI_CUSTOM_CSS = 'css/admin-fixes.css'  # Path to our custom CSS fixes

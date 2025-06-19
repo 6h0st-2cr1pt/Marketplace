@@ -40,7 +40,7 @@ urlpatterns = [
     path('profile/', views.profile, name='profile'),
     path('orders/', views.orders, name='orders'),
     path('orders/<int:order_id>/', views.order_detail, name='order_detail'),
-    path('orders/<int:order_id>/confirm_receipt/', views.confirm_receipt, name='confirm_receipt'),
+    path('orders/<int:order_id>/confirm-receipt/', views.confirm_receipt, name='confirm_receipt'),
     
     # Static pages
     path('about/', views.about, name='about'),
@@ -53,5 +53,5 @@ urlpatterns = [
     path('api/wishlist/toggle/', views.api_toggle_wishlist, name='api_toggle_wishlist'),
     path('api/search/', views.api_search, name='api_search'),
     path('api/cities/', views.api_cities, name='api_cities'),
-    path('admin/admin-analytics-data/', admin_analytics_data, name='admin_analytics_data'),
+    path('admin/analytics-data/', views.admin_analytics_data, name='admin_analytics_data'),
 ] 
