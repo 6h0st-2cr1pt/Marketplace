@@ -867,6 +867,7 @@ def admin_home(request):
 @user_passes_test(is_admin)
 def admin_analytics_data(request):
     logger = logging.getLogger(__name__)
+    logger.setLevel(logging.DEBUG)
 
     # Get filter parameters
     selected_date = request.GET.get('date', timezone.now().date().isoformat())
@@ -877,14 +878,55 @@ def admin_analytics_data(request):
     except (ValueError, TypeError):
         selected_date = timezone.now().date()
     
+    # Debug active products
+    active_products_query = Product.objects.filter(is_active=True)
+    if selected_seller:
+        active_products_query = active_products_query.filter(seller_id=selected_seller)
+    
+    active_products_count = active_products_query.count()
+    logger.debug("\nActive Products Query:")
+    logger.debug(f"SQL Query: {str(active_products_query.query)}")
+    logger.debug(f"Selected Seller: {selected_seller}")
+    logger.debug(f"Total active products: {active_products_count}")
+    
+    # Debug each active product
+    for product in active_products_query:
+        logger.debug(f"Product ID: {product.id}")
+        logger.debug(f"  Name: {product.name}")
+        logger.debug(f"  Is Active: {product.is_active}")
+        logger.debug(f"  Stock: {product.stock}")
+        logger.debug(f"  Seller: {product.seller.username}")
+        logger.debug(f"  Seller ID: {product.seller.id}")
+
     # Only count delivered orders
     orders = Order.objects.filter(status='delivered')
-    logger.info(f"Analytics: Counting only delivered orders. Total delivered orders: {orders.count()}")
-    logger.info(f"Order IDs: {[o.id for o in orders]}")
+    logger.debug(f"Total delivered orders found: {orders.count()}")
+    
+    # Debug each order's details
+    for order in orders:
+        logger.debug(f"Order ID: {order.id}")
+        logger.debug(f"  Status: {order.status}")
+        logger.debug(f"  Created at: {order.created_at}")
+        logger.debug(f"  Delivered at: {order.delivered_at}")
+        logger.debug(f"  Total price: {order.total_price}")
+        logger.debug(f"  Items count: {order.items.count()}")
     
     # Apply filters
     if selected_seller:
         orders = orders.filter(orderitem__product__seller_id=selected_seller)
+    
+    # Today's data
+    today_orders = orders.filter(delivered_at__date=selected_date.date())
+    logger.debug(f"\nOrders delivered today ({selected_date.date()}):")
+    logger.debug(f"Number of orders: {today_orders.count()}")
+    
+    for order in today_orders:
+        logger.debug(f"Today's Order ID: {order.id}")
+        logger.debug(f"  Delivered at: {order.delivered_at}")
+        logger.debug(f"  Total price: {order.total_price}")
+        logger.debug(f"  Items:")
+        for item in order.items.all():
+            logger.debug(f"    - {item.quantity}x {item.product.name}")
     
     # Time range for trends (last 30 days)
     end_date = timezone.now()
@@ -892,10 +934,10 @@ def admin_analytics_data(request):
     
     # Daily sales and orders trends
     daily_data = orders.filter(
-        created_at__gte=start_date,
-        created_at__lte=end_date
+        delivered_at__gte=start_date,
+        delivered_at__lte=end_date
     ).annotate(
-        date=TruncDate('created_at')
+        date=TruncDate('delivered_at')
     ).values('date').annotate(
         revenue=Sum('total_price'),
         order_count=Count('id'),
@@ -917,20 +959,22 @@ def admin_analytics_data(request):
         items_sold.append(data['items_sold'])
 
     # Today's data vs Yesterday's data
-    today = timezone.now().date()
-    yesterday = today - timedelta(days=1)
-
     today_data = orders.filter(
-        created_at__date=today
+        delivered_at__date=selected_date.date()
     ).aggregate(
         total_sales=Sum('total_price'),
         total_orders=Count('id'),
         avg_order_value=Sum('total_price') / Count('id'),
         items_sold=Count('items')
     )
+    
+    logger.debug("\nToday's aggregated data:")
+    logger.debug(f"Total sales: {today_data['total_sales']}")
+    logger.debug(f"Total orders: {today_data['total_orders']}")
+    logger.debug(f"Items sold: {today_data['items_sold']}")
 
     yesterday_data = orders.filter(
-        created_at__date=yesterday
+        delivered_at__date=selected_date.date() - timedelta(days=1)
     ).aggregate(
         total_sales=Sum('total_price'),
         total_orders=Count('id')
@@ -950,7 +994,7 @@ def admin_analytics_data(request):
     # Today's top products
     product_data = OrderItem.objects.filter(
         order__in=orders,
-        order__created_at__date=today
+        order__delivered_at__date=selected_date.date()
     ).values(
         'product__name',
         'product__category__name'
@@ -963,7 +1007,7 @@ def admin_analytics_data(request):
     # Today's top categories
     category_data = OrderItem.objects.filter(
         order__in=orders,
-        order__created_at__date=today
+        order__delivered_at__date=selected_date.date()
     ).values(
         'product__category__name'
     ).annotate(
@@ -975,7 +1019,7 @@ def admin_analytics_data(request):
     # Calculate category growth
     yesterday_category = OrderItem.objects.filter(
         order__in=orders,
-        order__created_at__date=yesterday
+        order__delivered_at__date=selected_date.date() - timedelta(days=1)
     ).values(
         'product__category__name'
     ).annotate(
@@ -1010,7 +1054,7 @@ def admin_analytics_data(request):
     # Today's top sellers
     seller_data = OrderItem.objects.filter(
         order__in=orders,
-        order__created_at__date=today
+        order__delivered_at__date=selected_date.date()
     ).values(
         'product__seller__username',
         'product__seller__id'
@@ -1025,7 +1069,7 @@ def admin_analytics_data(request):
     # Today's top customers
     customer_data = Order.objects.filter(
         status='delivered',
-        created_at__date=today
+        delivered_at__date=selected_date.date()
     ).values(
         'user__username'
     ).annotate(
@@ -1036,7 +1080,6 @@ def admin_analytics_data(request):
 
     active_products = Product.objects.filter(is_active=True).count()
     total_users = User.objects.count()
-    logger.info(f"Analytics: Total users in database: {total_users}")
     
     # Get all sellers for filter dropdown
     all_sellers = User.objects.filter(
@@ -1058,15 +1101,11 @@ def admin_analytics_data(request):
             'total_orders': today_data['total_orders'] or 0,
             'avg_order_value': float(today_data['avg_order_value'] or 0),
             'items_sold': today_data['items_sold'] or 0,
-            'active_products': active_products,
+            'active_products': active_products_count,
             'total_users': total_users,
             'sales_growth': sales_growth,
             'orders_growth': orders_growth,
             'yesterday_sales': float(yesterday_data['total_sales'] or 0),
             'yesterday_orders': yesterday_data['total_orders'] or 0
-        },
-        'filters': {
-            'sellers': list(all_sellers),
-            'selected_date': selected_date.isoformat()
         }
     })

@@ -6,6 +6,8 @@ import requests
 from django.core.files.base import ContentFile
 from urllib.parse import urlparse
 import os
+import base64
+import re
 
 class UserRegistrationForm(UserCreationForm):
     email = forms.EmailField(required=True)
@@ -182,6 +184,10 @@ class ProductImageAdminForm(forms.ModelForm):
         model = ProductImage
         fields = '__all__'
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['image'].required = False  # Make image field optional
+
     def clean(self):
         cleaned_data = super().clean()
         image_url = cleaned_data.get('image_url')
@@ -189,13 +195,27 @@ class ProductImageAdminForm(forms.ModelForm):
         if not image and not image_url:
             raise forms.ValidationError('You must provide either an image file or an image URL.')
         if image_url:
-            try:
-                response = requests.get(image_url)
-                response.raise_for_status()
-                file_name = os.path.basename(urlparse(image_url).path)
-                if not file_name:
-                    file_name = 'downloaded_image.jpg'
-                cleaned_data['image'] = ContentFile(response.content, name=file_name)
-            except Exception as e:
-                raise forms.ValidationError(f'Failed to download image from URL: {e}')
+            # Check for data URL (base64)
+            data_url_pattern = re.compile(r'^data:image/(?P<ext>\w+);base64,(?P<data>.+)$')
+            match = data_url_pattern.match(image_url)
+            if match:
+                ext = match.group('ext')
+                data = match.group('data')
+                try:
+                    file_data = base64.b64decode(data)
+                    file_name = f"uploaded_image.{ext}"
+                    cleaned_data['image'] = ContentFile(file_data, name=file_name)
+                except Exception as e:
+                    raise forms.ValidationError(f'Failed to decode base64 image: {e}')
+            else:
+                # Standard URL
+                try:
+                    response = requests.get(image_url)
+                    response.raise_for_status()
+                    file_name = os.path.basename(urlparse(image_url).path)
+                    if not file_name:
+                        file_name = 'downloaded_image.jpg'
+                    cleaned_data['image'] = ContentFile(response.content, name=file_name)
+                except Exception as e:
+                    raise forms.ValidationError(f'Failed to download image from URL: {e}')
         return cleaned_data 

@@ -46,7 +46,7 @@ class CategoryAdmin(admin.ModelAdmin):
 class ProductImageInline(admin.TabularInline):
     model = ProductImage
     extra = 1
-    fields = ('image', 'is_primary', 'preview_image')
+    fields = ('image', 'image_url', 'is_primary', 'preview_image')
     readonly_fields = ('preview_image',)
 
     def preview_image(self, obj):

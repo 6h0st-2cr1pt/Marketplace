@@ -230,15 +230,9 @@
 
             <div class="product-actions">
                 {% if user.is_authenticated %}
-                    {% if user_has_in_wishlist %}
-                        <button class="btn btn-outline-danger me-2" onclick="removeFromWishlist('{{ product.id }}')" id="wishlistBtn">
-                            <i class="fas fa-heart me-2"></i>Remove from Wishlist
-                        </button>
-                    {% else %}
-                        <button class="btn btn-outline-primary me-2" onclick="addToWishlist('{{ product.id }}')" id="wishlistBtn">
-                            <i class="far fa-heart me-2"></i>Add to Wishlist
-                        </button>
-                    {% endif %}
+                    <button class="btn {% if user_has_in_wishlist %}btn-outline-danger active{% else %}btn-outline-primary{% endif %} me-2 add-to-wishlist" data-product-id="{{ product.id }}" id="wishlistBtn">
+                        <i class="fas fa-heart me-2"></i>{% if user_has_in_wishlist %}Remove from Wishlist{% else %}Add to Wishlist{% endif %}
+                    </button>
                 {% else %}
                     <a href="{% url 'marketplace:login' %}?next={% url 'marketplace:product_detail' product.slug %}" class="btn btn-outline-primary me-2">
                         <i class="far fa-heart me-2"></i>Add to Wishlist
@@ -265,8 +259,8 @@
         <h3 class="mb-4">Related Products</h3>
         <div class="row g-4">
             {% for related_product in related_products %}
-            <div class="col-6 col-md-3">
-                <div class="card h-100 border-0 shadow-sm hover-card">
+            <div class="col-md-6 col-lg-3">
+                <div class="card h-100 product-card border-0 shadow-sm hover-card">
                     {% if related_product.get_primary_image %}
                     <img src="{{ related_product.get_primary_image.url }}" class="card-img-top" alt="{{ related_product.name }}">
                     {% else %}
@@ -275,9 +269,9 @@
                     <div class="card-body">
                         <h5 class="card-title">{{ related_product.name }}</h5>
                         <p class="card-text text-muted">{{ related_product.category.name }}</p>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span class="h5 mb-0">${{ related_product.price }}</span>
-                            <a href="{% url 'marketplace:product_detail' related_product.slug %}" class="btn btn-outline-primary">View</a>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="h5 mb-0">₱{{ related_product.price }}</span>
+                            <a href="{% url 'marketplace:product_detail' related_product.slug %}" class="btn btn-outline-primary btn-sm">View</a>
                         </div>
                     </div>
                 </div>
@@ -294,64 +288,19 @@ function changeMainImage(src) {
     document.getElementById('mainImage').src = src;
 }
 
-function addToWishlist(productId) {
-    fetch(`/wishlist/add/${productId}/`, {
-        method: 'POST',
-        headers: {
-            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
-            'X-Requested-With': 'XMLHttpRequest',
-            'Content-Type': 'application/json',
-        },
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            // Update button to show "Remove from Wishlist"
-            const wishlistBtn = document.getElementById('wishlistBtn');
-            wishlistBtn.className = 'btn btn-outline-danger me-2';
-            wishlistBtn.innerHTML = '<i class="fas fa-heart me-2"></i>Remove from Wishlist';
-            wishlistBtn.onclick = function() { removeFromWishlist(productId); };
-            
-            // Show success message
-            showMessage('Product added to wishlist!', 'success');
-        } else {
-            showMessage('Failed to add to wishlist. Please try again.', 'error');
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        showMessage('An error occurred. Please try again.', 'error');
-    });
-}
-
-function removeFromWishlist(productId) {
-    fetch(`/wishlist/remove/${productId}/`, {
-        method: 'POST',
-        headers: {
-            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
-            'X-Requested-With': 'XMLHttpRequest',
-            'Content-Type': 'application/json',
-        },
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            // Update button to show "Add to Wishlist"
-            const wishlistBtn = document.getElementById('wishlistBtn');
-            wishlistBtn.className = 'btn btn-outline-primary me-2';
-            wishlistBtn.innerHTML = '<i class="far fa-heart me-2"></i>Add to Wishlist';
-            wishlistBtn.onclick = function() { addToWishlist(productId); };
-            
-            // Show success message
-            showMessage('Product removed from wishlist!', 'success');
-        } else {
-            showMessage('Failed to remove from wishlist. Please try again.', 'error');
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        showMessage('An error occurred. Please try again.', 'error');
-    });
+function shareProduct() {
+    if (navigator.share) {
+        navigator.share({
+            title: '{{ product.name }}',
+            text: 'Check out this product on Local Marketplace!',
+            url: window.location.href,
+        })
+        .then(() => console.log('Successful share'))
+        .catch((error) => console.log('Error sharing', error));
+    } else {
+        // Fallback for browsers that do not support the Web Share API
+        alert('Sharing is not supported on this browser.');
+    }
 }
 
 function showMessage(message, type) {
@@ -371,19 +320,6 @@ function showMessage(message, type) {
             alertDiv.remove();
         }
     }, 3000);
-}
-
-function shareProduct() {
-    // Implement share functionality
-    if (navigator.share) {
-        navigator.share({
-            title: '{{ product.name }}',
-            text: 'Check out this product on Local Marketplace!',
-            url: window.location.href,
-        });
-    } else {
-        alert('Share functionality is not supported on your browser.');
-    }
 }
 </script>
 {% endblock %} 

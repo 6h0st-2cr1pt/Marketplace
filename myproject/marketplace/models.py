@@ -4,6 +4,7 @@ from django.utils.text import slugify
 from django.urls import reverse
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.utils import timezone
 
 User = get_user_model()
 
@@ -134,12 +135,21 @@ class Product(models.Model):
 
     def get_primary_image(self):
         primary_image = self.images.filter(is_primary=True).first()
-        if primary_image:
-            return primary_image.image
-        # If no primary image is set, return the first image
-        first_image = self.images.first()
-        if first_image:
-            return first_image.image
+        if primary_image and getattr(primary_image.image, 'name', None):
+            try:
+                if primary_image.image and hasattr(primary_image.image, 'url'):
+                    _ = primary_image.image.url  # Will raise ValueError if no file
+                    return primary_image.image
+            except Exception:
+                pass
+        # If no primary image is set or file is missing, return the first valid image
+        for img in self.images.all():
+            try:
+                if img.image and hasattr(img.image, 'url'):
+                    _ = img.image.url
+                    return img.image
+            except Exception:
+                continue
         return None
 
     def is_in_stock(self):
@@ -174,7 +184,7 @@ class Product(models.Model):
 
 class ProductImage(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='images')
-    image = models.ImageField(upload_to='product_images/')
+    image = models.ImageField(upload_to='product_images/', blank=True, null=True)
     is_primary = models.BooleanField(default=False)
     image_url = models.URLField(blank=True, null=True, help_text="Paste an image URL to fetch from the web.")
     created_at = models.DateTimeField(auto_now_add=True)
@@ -259,6 +269,7 @@ class Order(models.Model):
     total_price = models.DecimalField(max_digits=10, decimal_places=2)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    delivered_at = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return f"Order {self.id} by {self.user.username}"
@@ -268,6 +279,9 @@ class Order(models.Model):
             self.first_name = self.user.first_name
         if not self.last_name and self.user:
             self.last_name = self.user.last_name
+        # If status is being changed to delivered and delivered_at is not set
+        if self.status == 'delivered' and not self.delivered_at:
+            self.delivered_at = timezone.now()
         super().save(*args, **kwargs)
 
 class OrderItem(models.Model):

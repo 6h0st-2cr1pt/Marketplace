@@ -125,140 +125,159 @@
     </main>
 
     <!-- Footer -->
-    <footer class="footer-glass py-5 mt-5">
-        <div class="container">
-            <div class="row g-4">
-                <!-- About Section -->
-                <div class="col-lg-4 col-md-6">
-                    <h5 class="text-white mb-4">About Local Marketplace</h5>
-                    <p class="text-white-50">Connecting local artisans, farmers, and creators with customers in your community. Supporting sustainable and ethical shopping practices.</p>
-                    <div class="social-links mt-4">
-                        <a href="https://www.facebook.com/DTI.Philippines/" class="me-3"><i class="fi fi-brands-facebook"></i></a>
-                        <a href="https://x.com/DtiPhilippines" class="me-3"><i class="fi fi-brands-twitter"></i></a>
-                        <a href="https://www.instagram.com/dti.philippines" class="me-3"><i class="fi fi-brands-instagram"></i></a>
-                        <a href="https://linkedin.com/in/dtiphilippines" class="me-3"><i class="fi fi-brands-linkedin"></i></a>
+    <footer class="footer-dark pt-5 pb-4">
+        <div class="container text-center text-md-start">
+            <div class="row">
+
+                <!-- Column 1: About & Certifications -->
+                <div class="col-md-6 col-lg-3 mb-4">
+                    <h5 class="text-uppercase fw-bold mb-4">Local Marketplace</h5>
+                    <p>
+                        Your trusted partner for authentic local products. Certified sellers, quality goods, and guaranteed satisfaction.
+                    </p>
+                    <div class="mt-4">
+                        <a href="#" class="social-icon"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="social-icon"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="social-icon"><i class="fab fa-instagram"></i></a>
+                        <a href="#" class="social-icon"><i class="fab fa-linkedin-in"></i></a>
                     </div>
-                </div>
-
-                <!-- Quick Links -->
-                <div class="col-lg-2 col-md-6">
-                    <h5 class="text-white mb-4">Quick Links</h5>
-                    <ul class="list-unstyled footer-links">
-                        <li class="mb-2"><a href="{% url 'marketplace:home' %}">
-                            <i class="fi fi-rr-house-chimney text-warning me-2"></i> Home
-                        </a></li>
-                        <li class="mb-2"><a href="{% url 'marketplace:product_list' %}">
-                            <i class="fi fi-rr-shopping-bag text-warning me-2"></i> Products
-                        </a></li>
-                        <li class="mb-2"><a href="{% url 'marketplace:category_list' %}">
-                            <i class="fi fi-rr-apps text-warning me-2"></i> Categories
-                        </a></li>
-                        <li class="mb-2"><a href="{% url 'marketplace:about' %}">
-                            <i class="fi fi-rr-info text-warning me-2"></i> About Us
-                        </a></li>
-                        <li class="mb-2"><a href="{% url 'marketplace:contact' %}">
-                            <i class="fi fi-rr-phone-call text-warning me-2"></i> Contact
-                        </a></li>
+                    <h5 class="text-uppercase fw-bold my-4">Certifications</h5>
+                    <ul class="list-unstyled footer-list">
+                        <li><i class="fas fa-award me-2"></i> DTI Registered</li>
+                        <li><i class="fas fa-award me-2"></i> FDA Approved</li>
+                        <li><i class="fas fa-award me-2"></i> ISO 9001 Certified</li>
                     </ul>
                 </div>
 
-                <!-- Categories -->
-                <div class="col-lg-2 col-md-6">
-                    <h5 class="text-white mb-4">Categories</h5>
-                    <ul class="list-unstyled footer-links">
-                        <li class="mb-2"><a href="#">
-                            <i class="fi fi-rr-paint-brush text-warning me-2"></i> Handicrafts
-                        </a></li>
-                        <li class="mb-2"><a href="#">
-                            <i class="fi fi-rr-apple-whole text-warning me-2"></i> Fresh Produce
-                        </a></li>
-                        <li class="mb-2"><a href="#">
-                            <i class="fi fi-rr-palette text-warning me-2"></i> Art & Design
-                        </a></li>
-                        <li class="mb-2"><a href="#">
-                            <i class="fi fi-rr-leaf text-warning me-2"></i> Organic Products
-                        </a></li>
-                        <li class="mb-2"><a href="#">
-                            <i class="fi fi-rr-shop text-warning me-2"></i> Local Services
-                        </a></li>
+                <!-- Column 2: Quick Links -->
+                <div class="col-md-6 col-lg-2 mb-4">
+                    <h5 class="text-uppercase fw-bold mb-4">Products</h5>
+                    <ul class="list-unstyled footer-list">
+                        <li><a href="{% url 'marketplace:product_list' %}">All Products</a></li>
+                        <li><a href="{% url 'marketplace:category_list' %}">Categories</a></li>
+                        <li><a href="{% url 'marketplace:region_list' %}">Regions</a></li>
+                        <li><a href="#">New Arrivals</a></li>
+                        <li><a href="#">Best Sellers</a></li>
                     </ul>
                 </div>
 
-                <!-- Contact Info -->
-                <div class="col-lg-4 col-md-6">
-                    <h5 class="text-white mb-4">Contact Us</h5>
-                    <ul class="list-unstyled footer-contact">
-                        <li class="mb-3">
-                            <i class="fi fi-rr-marker"></i>
-                            <span> MX89+252, Diola St, Bacolod City, 6100 Negros Occidental, Philippines</span>
-                        </li>
-                        <li class="mb-3">
-                            <i class="fi fi-rr-phone-call"></i>
-                            <span>(034) 434 7920</span>
-                        </li>
-                        <li class="mb-3">
-                            <i class="fi fi-rr-envelope"></i>
-                            <span>r06.negrosoccidental@dti.gov.ph</span>
-                        </li>
-                        <li class="mb-3">
-                            <i class="fi fi-rr-globe"></i>
-                            <span><a href="https://www.dti.gov.ph/" class="text-white-50"> www.dti.gov.ph/</a></span>
-                        </li>
-                        <li class="mb-3">
-                            <i class="fi fi-rr-time-check"></i>
-                            <span>Mon - Fri: 8:00 AM - 5:00 PM</span>
-                        </li>
+                <!-- Column 3: Contact & Hours -->
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <h5 class="text-uppercase fw-bold mb-4">Contact & Hours</h5>
+                    <ul class="list-unstyled footer-list">
+                        <li><i class="fas fa-phone me-3"></i> +63 912 345 6789</li>
+                        <li><i class="fas fa-envelope me-3"></i> support@localmarketplace.com</li>
+                        <li><i class="fas fa-map-marker-alt me-3"></i> 123 Rizal Ave, Manila, Philippines</li>
+                    </ul>
+                    <h5 class="text-uppercase fw-bold my-4">Business Hours</h5>
+                    <ul class="list-unstyled footer-list no-icon">
+                        <li>Monday - Friday: 9:00 AM - 8:00 PM</li>
+                        <li>Saturday: 10:00 AM - 6:00 PM</li>
+                        <li>Sunday: Closed</li>
                     </ul>
                 </div>
-            </div>
-
-            <!-- Bottom Footer -->
-            <div class="row mt-5">
-                <div class="col-12">
-                    <hr class="footer-divider">
-                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-center">
-                        <p class="text-white-50 mb-2 mb-md-0">&copy; 2025 Local Marketplace. All rights reserved.</p>
-                        <div class="footer-bottom-links">
-                            <a href="{% url 'marketplace:terms' %}">Terms & Conditions</a>
-                            <a href="{% url 'marketplace:privacy' %}">Privacy Policy</a>
-                            <a href="{% url 'marketplace:contact' %}">Support</a>
+                
+                <!-- Column 4: Stay Connected & Support -->
+                <div class="col-md-6 col-lg-3 mb-4">
+                    <h5 class="text-uppercase fw-bold mb-4">Stay Connected</h5>
+                    <p>Subscribe for updates, special offers, and news from local artisans.</p>
+                    <form action="#" method="post">
+                        {% csrf_token %}
+                        <div class="input-group mb-3">
+                            <input type="email" class="form-control" placeholder="Enter your email" name="email">
+                            <button class="btn btn-primary" type="submit">Subscribe</button>
                         </div>
+                    </form>
+                    <h5 class="text-uppercase fw-bold my-4">Customer Support</h5>
+                    <ul class="list-unstyled footer-list">
+                        <li><a href="{% url 'marketplace:profile' %}">Your Account</a></li>
+                        <li><a href="{% url 'marketplace:orders' %}">Track Orders</a></li>
+                        <li><a href="#">Help Center</a></li>
+                        <li><a href="#">FAQs</a></li>
+                    </ul>
+                </div>
+
+            </div>
+        </div>
+        <div class="footer-bottom py-3 mt-4">
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-6 text-center text-md-start">
+                        <p class="mb-0">&copy; {% now "Y" %} Local Marketplace. All rights reserved.</p>
+                    </div>
+                    <div class="col-md-6 text-center text-md-end">
+                        <a href="#" class="me-3">Privacy Policy</a>
+                        <a href="#" class="me-3">Terms of Service</a>
+                        <a href="#">Cookie Policy</a>
                     </div>
                 </div>
             </div>
         </div>
     </footer>
 
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- Custom JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Splash screen handling
         document.addEventListener('DOMContentLoaded', function() {
+            // Splash screen handling
             const splashScreen = document.getElementById('splash-screen');
-            
-            // Check if this is the first visit in this session
-            if (!sessionStorage.getItem('splashShown')) {
-                // Show splash screen
-                splashScreen.style.display = 'flex';
-                
-                // Set flag in session storage
-                sessionStorage.setItem('splashShown', 'true');
-                
-                // Hide splash screen after 3 seconds
-                setTimeout(function() {
-                    splashScreen.style.opacity = '0';
-                    splashScreen.style.visibility = 'hidden';
-                    
-                    // Remove splash screen from DOM after fade out
-                    setTimeout(function() {
-                        splashScreen.remove();
-                    }, 500); // Match this with the CSS transition duration
-                }, 3000);
-            } else {
-                // If splash has been shown before, remove it immediately
-                splashScreen.remove();
+            if (splashScreen) {
+                if (!sessionStorage.getItem('splashShown')) {
+                    sessionStorage.setItem('splashShown', 'true');
+                    setTimeout(() => {
+                        splashScreen.style.opacity = '0';
+                        splashScreen.style.visibility = 'hidden';
+                        setTimeout(() => {
+                            splashScreen.remove();
+                        }, 500);
+                    }, 3000);
+                } else {
+                    splashScreen.remove();
+                }
             }
+
+            // Handle wishlist functionality
+            document.querySelectorAll('.add-to-wishlist').forEach(button => {
+                button.addEventListener('click', function() {
+                    const productId = this.dataset.productId;
+                    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+                    fetch('{% url "marketplace:api_toggle_wishlist" %}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                            'X-CSRFToken': csrfToken
+                        },
+                        body: `product_id=${productId}`
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            this.classList.toggle('active');
+                            this.classList.toggle('btn-outline-primary');
+                            this.classList.toggle('btn-outline-danger');
+                            
+                            const icon = this.querySelector('i');
+                            
+                            // Check if the button has text to update
+                            const hasText = this.innerText.trim() !== '';
+
+                            if (data.action === 'added') {
+                                if (hasText) {
+                                    this.innerHTML = '<i class="fas fa-heart me-2"></i>Remove from Wishlist';
+                                } else {
+                                    icon.className = 'fas fa-heart';
+                                }
+                            } else {
+                                if (hasText) {
+                                    this.innerHTML = '<i class="far fa-heart me-2"></i>Add to Wishlist';
+                                } else {
+                                    icon.className = 'far fa-heart';
+                                }
+                            }
+                        }
+                    });
+                });
+            });
         });
     </script>
     {% block extra_js %}{% endblock %}

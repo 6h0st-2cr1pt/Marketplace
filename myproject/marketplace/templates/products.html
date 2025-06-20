@@ -151,67 +151,14 @@
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Handle category and sort changes
-    document.querySelectorAll('select[name="category"], select[name="region"], select[name="city"], select[name="sort"]').forEach(select => {
-        select.addEventListener('change', function() {
-            this.form.submit();
-        });
-    });
-
-    // Dynamic city dropdown based on region selection
-    const regionSelect = document.querySelector('select[name="region"]');
-    const citySelect = document.querySelector('select[name="city"]');
-    
-    if (regionSelect && citySelect) {
-        regionSelect.addEventListener('change', function() {
-            const selectedRegion = this.value;
-            
-            // Clear current city options
-            citySelect.innerHTML = '<option value="">All Cities</option>';
-            
-            if (selectedRegion) {
-                // Fetch cities for the selected region
-                fetch(`/api/cities/?region=${selectedRegion}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            data.cities.forEach(city => {
-                                const option = document.createElement('option');
-                                option.value = city.slug;
-                                option.textContent = city.name;
-                                citySelect.appendChild(option);
-                            });
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error fetching cities:', error);
-                    });
-            }
-        });
-    }
-
-    // Handle wishlist functionality
-    document.querySelectorAll('.add-to-wishlist').forEach(button => {
-        button.addEventListener('click', function() {
-            const productId = this.dataset.productId;
-            fetch('{% url "marketplace:api_toggle_wishlist" %}', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-                },
-                body: `product_id=${productId}`
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    this.classList.toggle('active');
-                    // Show success message
-                    const toast = new bootstrap.Toast(document.createElement('div'));
-                    toast.show();
-                }
-            });
-        });
+    // Handle "Clear Filters" button
+    document.getElementById('clearFilters').addEventListener('click', function() {
+        document.querySelector('input[name="q"]').value = '';
+        document.querySelector('select[name="category"]').selectedIndex = 0;
+        document.querySelector('select[name="sort"]').selectedIndex = 0;
+        document.querySelector('input[name="min_price"]').value = '';
+        document.querySelector('input[name="max_price"]').value = '';
+        this.form.submit();
     });
 });
 </script>
